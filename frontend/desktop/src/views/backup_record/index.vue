@@ -1,3 +1,3 @@
 <template>
-    <div>备份记录查看</div>
+    <div>备份记录查询</div>
 </template>

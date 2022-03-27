@@ -57,7 +57,7 @@
 	"同步业务": "Synchronize businesses",
 	"请选择要同步的业务": "Please select the business to be synchronized",
 	"开始同步CMDB业务信息": "Start to synchronize CMDB business information",
-	"CMDB业务信息正在同步,可通过切换API获取最新数据": "CMDB business information is being synchronized",
+	"CMDB业务信息正在同步": "CMDB business information is being synchronized",
 	"主机ID请输入整形数据": "Please enter the shaping data for the host ID",
 	"云区域ID请输入整形数据": "Please enter the shaping data for the cloud area ID",
 	"查询结果为空": "The query result is empty",

@@ -3,6 +3,9 @@ import math
 
 from django.db import transaction
 
+HTTP_GET = "GET"
+HTTP_POST = "POST"
+
 
 class JobExecuteStatus:
     """
@@ -53,27 +56,27 @@ class SyncCommand:
     SYNC_SINGLE = "sync_single"
 
 
-def get_page_data(username, request_method, bk_biz_id, limit, key="info"):
+def get_page_data(username, request_method, bk_biz_id, page_size, key="info"):
     """
     获取有分页限制的API数据
     """
     params = {
         "bk_biz_id": bk_biz_id,
-        "start": 0,
-        "limit": limit,
+        "page": 1,
+        "page_size": page_size,
     }
     res = request_method(username, params)["data"]
-    page = math.ceil(res["count"] / params["limit"])
+    page = math.ceil(res["count"] / page_size)
     result_list = []
     if page != 0:
-        index = 0
+        index = 1
         while True:
             result_list += res[key]
 
-            if index == page - 1:
+            if index == page:
                 break
             index += 1
-            params["start"] = index * params["limit"]
+            params["page"] = index
             res = request_method(username, params)["data"]
 
     return result_list

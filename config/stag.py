@@ -40,16 +40,28 @@ if FRONTEND_BACKEND_SEPARATION:
     CORS_ORIGIN_ALLOW_ALL = True
     CORS_ALLOW_CREDENTIALS = True
 
-DATABASES.update(
+REDIS_HOST = os.environ.get("REDIS_HOST")
+REDIS_PORT = int(os.environ.get("REDIS_PORT"))
+REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD")
+CACHES.update(
     {
         "default": {
-            "ENGINE": "django.db.backends.mysql",
-            "NAME": os.getenv("BKAPP_MYSQL_DBNAME"),  # 数据库名
-            "USER": os.getenv("BKAPP_MYSQL_USER"),  # 数据库用户
-            "PASSWORD": os.getenv("BKAPP_MYSQL_PASSWORD"),  # 数据库密码
-            "HOST": os.getenv("BKAPP_MYSQL_HOST"),  # 数据库主机
-            "PORT": os.getenv("BKAPP_MYSQL_PORT"),  # 数据库端口
-        },
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/1",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        }
     }
 )
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('MYSQL_NAME'),
+        'USER': os.environ.get('MYSQL_USER'),
+        'PASSWORD': os.environ.get('MYSQL_PASSWORD'),
+        'HOST': os.environ.get('MYSQL_HOST'),
+        'PORT': os.environ.get('MYSQL_PORT'),
+    }
+}

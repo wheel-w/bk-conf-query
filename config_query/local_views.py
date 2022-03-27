@@ -120,7 +120,7 @@ def sync_host_data(request):
         cache.set(command["business"]["bk_biz_id"], SyncTaskStatus.WAIT, timeout=1800)
         sync_single_data_task.delay(request.user.username, command["business"])
 
-    return ConfigQueryResponse()
+    return ConfigQueryResponse(result=True)
 
 
 @api_view(["POST"])

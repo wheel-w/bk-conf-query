@@ -9,7 +9,7 @@ class ConfigQueryResponse(Response):
 
     def __init__(
         self,
-        data=None,
+        data=[],
         code=0,
         request_id=None,
         message="success",

@@ -5,7 +5,6 @@ import posixpath
 
 from celery.task import task
 from django.core.cache import caches
-from django.db import transaction
 
 from config_query import cmdb, job
 from config_query.base import (
@@ -34,8 +33,8 @@ def sync_data_task(username):
     biz_list = cmdb.get_business_info(username)["data"]["info"]
     end_business = biz_list.pop()
     for business in biz_list:
-        sync_single_data.delay(username, business)
-    sync_single_data.delay(username, end_business, is_finished=True)
+        sync_single_data(username, business)
+    sync_single_data(username, end_business, is_finished=True)
 
 
 @task()
@@ -105,42 +104,30 @@ def sync_single_data(username, business, is_finished=False):
     host_list = get_page_data(username, cmdb.get_host_info, business["bk_biz_id"], PageDataLimit.HOST_PAGE_LIMIT)
     online_host_dict = {}
     for host in host_list:
-        host.update(
-            {
-                "bk_biz_id": f"{business['bk_biz_id']},",
-            }
-        )
-        online_host_dict[host["bk_host_id"]] = Host(**host)
+        db_host = {
+            "bk_host_id": host["bk_host_id"],
+            "bk_host_name": host["bk_host_name"],
+            "bk_host_innerip": host["bk_host_innerip"],
+            "bk_host_outerip": host["bk_host_outerip"],
+            "host_system": host["host_system"],
+            "operator": host["operator"],
+            "bk_bak_operator": host["bk_bak_operator"],
+            "bk_cloud_id": host["bk_cloud_id"],
+            "bk_cloud_name": host["bk_cloud_name"],
+            "bk_biz_id": business["bk_biz_id"],
+            "bk_set_id": host["bk_set_id"],
+            "bk_module_id": host["bk_module_id"]
+        }
+        online_host_dict[host["bk_host_id"]] = Host(**db_host)
 
     bulk_create_or_update_delete(
         Host,
         primary_key_name="bk_host_id",
-        bk_biz_id=f"{business['bk_biz_id']},",
+        bk_biz_id=business["bk_biz_id"],
         online_data_dict=online_host_dict,
-        fields=["bk_host_innerip", "bk_host_name", "bk_host_outerip", "operator", "bk_bak_operator", "bk_cloud_id"],
+        fields=["bk_host_innerip", "bk_host_name", "bk_host_outerip", "operator", "bk_bak_operator", "bk_cloud_id",
+                "bk_cloud_name", "host_system", "bk_biz_id", "bk_set_id", "bk_module_id"],
     )
-
-    # 获取业务 模块 集群 主机的关系并保存
-    relation_list = get_page_data(
-        username, cmdb.get_business_topo, business["bk_biz_id"], PageDataLimit.TOPO_PAGE_LIMIT, key="data"
-    )
-    hosts = Host.objects.all().filter(bk_biz_id=f"{business['bk_biz_id']},")
-    hosts_dict = {host.bk_host_id: host for host in hosts}
-    for relation in relation_list:
-
-        host = hosts_dict[relation["bk_host_id"]]
-
-        if f"{relation['bk_biz_id']}," not in host.bk_biz_id:
-            host.bk_biz_id += f"{relation['bk_biz_id']},"
-
-        if f"{relation['bk_set_id']}," not in host.bk_set_id:
-            host.bk_set_id += f"{relation['bk_set_id']},"
-
-        if f"{relation['bk_module_id']}," not in host.bk_module_id:
-            host.bk_module_id += f"{relation['bk_module_id']},"
-
-    with transaction.atomic():
-        Host.objects.bulk_update(hosts_dict.values(), fields=["bk_module_id", "bk_set_id", "bk_biz_id"])
 
     if is_finished:
         cache.set("sync_all", SyncTaskStatus.IDLE, timeout=1800)
@@ -156,7 +143,7 @@ def backup_host_files_task(username, data):
 
     file_abs_list = [posixpath.join(file_directory, file_name) for file_name in file_list]
     file_abs_str = ",".join(file_abs_list)
-    params = f"wheelwang_backup_directory {file_abs_str} '{data['file_suffix']}'"
+    params = f"wheel-w_backup_directory {file_abs_str} '{data['file_suffix']}'"
     result, script_logs, params = job.execute_script_get_log(username, "backup_host_files", data, params)
     if not result:
         logger.info(f"备份文件脚本执行失败 params:{params} script_logs:{script_logs}")

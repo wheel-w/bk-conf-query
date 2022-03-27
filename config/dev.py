@@ -56,7 +56,17 @@ DATABASES = {
         "PORT": "3306",
     },
 }
-
+CACHES.update(
+    {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://127.0.0.1:6379/1",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        }
+    }
+)
 # 前后端开发模式下支持跨域配置
 if FRONTEND_BACKEND_SEPARATION:
     INSTALLED_APPS += ("corsheaders",)
