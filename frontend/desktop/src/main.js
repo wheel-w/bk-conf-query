@@ -15,8 +15,20 @@ import Img403 from '@/images/403.png'
 import Exception from '@/components/exception'
 import { bus } from '@/common/bus'
 import AuthComponent from '@/components/auth'
-import '@/common/bkmagic'
+import bkMagicVue from 'bk-magic-vue'
+import VueI18n from 'vue-i18n'
+import Cookie from 'js-cookie'
+import { messages } from '@/language/index.js'
 
+// 国际化配置
+Vue.use(VueI18n)
+Vue.use(bkMagicVue)
+const locale = Cookie.get('blueking_language') || 'zhCN'
+const i18n = new VueI18n({
+    locale,
+    messages
+})
+bkMagicVue.locale.i18n((key, value) => i18n.t(key, value))
 Vue.component('app-exception', Exception)
 Vue.component('app-auth', AuthComponent)
 
@@ -26,6 +38,7 @@ auth.requestCurrentUser().then(user => {
         global.bus = bus
         global.mainComponent = new Vue({
             el: '#app',
+            i18n,
             router,
             store,
             components: { App },
