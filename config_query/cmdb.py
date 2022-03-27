@@ -19,6 +19,11 @@ def _request_cmdb_api(api_name, request_method, query_params={}):
 
         response.raise_for_status()
         data = response.json()
+        if "count" not in data:
+            data = {
+                "count": None,
+                "results": data
+            }
         result = {
             "result": True,
             "data": {
