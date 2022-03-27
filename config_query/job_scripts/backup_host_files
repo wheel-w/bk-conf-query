@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+# -*- coding: utf8 -*-
+
+import datetime
+import os
+import shutil
+import sys
+
+
+def _now(format="%Y-%m-%d %H:%M:%S"):
+    return datetime.datetime.now().strftime(format)
+
+
+##### 可在脚本开始运行时调用，打印当时的时间戳及PID。
+def job_start():
+    print ("[{}][PID:{}] job_start".format(_now(), os.getpid()))
+
+
+##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。
+def job_success(msg):
+    print ("[{}][PID:{}] job_success:[{}]".format(_now(), os.getpid(), msg))
+    sys.exit(0)
+
+
+##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。
+def job_fail(msg):
+    print ("[{}][PID:{}] job_fail:[{}]".format(_now(), os.getpid(), msg))
+    sys.exit(1)
+
+
+if __name__ == "__main__":
+
+    job_start()
+
+    # 备份目录
+    target_dir = sys.argv[1]
+    # 要备份的文件列表
+    file_list = sys.argv[2].split(",")
+    # 输出文件目录
+    print os.path.dirname(file_list[0])
+    # 输出文件后缀
+    print sys.argv[3]
+    # 打包的中间文件夹
+    backup_directory = "{}{}".format("/tem_backup", datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
+    # 创建中间文件夹
+    os.makedirs(backup_directory)
+    # 将指定文件移动到中间文件夹
+    for file in file_list:
+        shutil.copyfile(file, os.path.join(backup_directory, os.path.basename(file)))
+
+    # 打包
+    target = os.path.join(target_dir, "{}{}".format(datetime.datetime.now().strftime("%Y%m%d%H%M%S"), ".zip"))
+
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
+
+    zip_command = "zip -qr '{}' {}".format(target, "".join(backup_directory))
+
+    if os.system(zip_command) == 0:
+        print target
+        job_success("Backup Success !!!")
+    else:
+        job_fail("Backup Failed!")
+    # 移除中间文件夹
+    shutil.rmtree(backup_directory)
+
+
+###### iJobs中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值
+###### 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败
+###### 可在此处开始编写您的脚本逻辑代码
