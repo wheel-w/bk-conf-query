@@ -1,20 +1,30 @@
 # -*- coding: utf-8 -*-
 import logging
 import os
+import json
 import requests
+
+from django.conf import settings
 
 from config_query.base import HTTP_GET
 
-CMDB_API_HOST = os.getenv("CMDB_API_HOST", "")
-
+CMDB_API_HOST = os.getenv("CMDB_API_HOST", "https://bkapi.paas-edu.bktencent.com/api/mock-cmdb")
+APIGW_STATE = "prod" if settings.RUN_MODE == "PRODUCT" else "stag"
 logger = logging.getLogger("root")
 
 
-def _request_cmdb_api(api_name, request_method, query_params={}):
-    url = "{}/{}".format(CMDB_API_HOST, api_name)
+def _request_cmdb_api(username, api_name, request_method, query_params={}):
+    url = "{}/{}/{}".format(CMDB_API_HOST, APIGW_STATE, api_name)
+    headers = {
+        "X-Bkapi-Authorization": json.dumps({
+            "bk_app_code": settings.APP_CODE,
+            "bk_app_secret": settings.SECRET_KEY,
+            "bk_username": username
+        }),
+    }
     try:
         text = ""
-        response = requests.request(request_method, url, params=query_params)
+        response = requests.request(request_method, url, params=query_params, headers=headers)
         text = response.text
 
         response.raise_for_status()
@@ -47,7 +57,7 @@ def get_business_info(username):
     获取cmdb所有业务信息
     """
 
-    result = _request_cmdb_api("api/business_list/", HTTP_GET)
+    result = _request_cmdb_api(username, "api/business_list/", HTTP_GET)
 
     return result
 
@@ -59,7 +69,7 @@ def get_sets_info(username, bk_biz_id):
     query_params = {
         "bk_biz_id": bk_biz_id
     }
-    result = _request_cmdb_api("api/set_list/", HTTP_GET, query_params)
+    result = _request_cmdb_api(username, "api/set_list/", HTTP_GET, query_params)
 
     return result
 
@@ -71,7 +81,7 @@ def get_modules_info(username, bk_biz_id):
     query_params = {
         "bk_biz_id": bk_biz_id
     }
-    result = _request_cmdb_api("api/module_list/", HTTP_GET, query_params)
+    result = _request_cmdb_api(username, "api/module_list/", HTTP_GET, query_params)
 
     return result
 
@@ -85,7 +95,7 @@ def get_host_info(username, params):
         "page": params["page"],
         "page_size": params["page_size"]
     }
-    result = _request_cmdb_api("api/host_list/", HTTP_GET, query_params)
+    result = _request_cmdb_api(username, "api/host_list/", HTTP_GET, query_params)
 
     return result
 
@@ -97,6 +107,6 @@ def get_host_base_info(username, bk_host_id=None):
     query_params = {
         "bk_host_id": bk_host_id
     }
-    result = _request_cmdb_api("api/host_list/", HTTP_GET, query_params)
+    result = _request_cmdb_api(username, "api/host_list/", HTTP_GET, query_params)
 
     return result
