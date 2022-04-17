@@ -31,7 +31,7 @@ jobs:
           echo "$CODE_CD_PRI" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan gitee.com >> ~/.ssh/known_hosts
-          git remote add gitee-origin git@gitee.com:wang-wenxing/xaut-saas.git
+          git remote add gitee-origin git@gitee.com:wang-wenxing/bk-config-query.git
           git config --global user.name github-auto-release
           git config --global user.email "<username@email.address>"
           
@@ -49,4 +49,4 @@ jobs:
         run: |
           git add static
           git commit -m "minor: build"
-          git push gitee-origin -f
+          git push gitee-origin ${GITHUB_REF##*/}:delopy -f

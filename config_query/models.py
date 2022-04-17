@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from blueapps.utils import get_request
 from django.db import models
 
 
