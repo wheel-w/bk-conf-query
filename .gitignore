@@ -1,4 +1,6 @@
-.idea/
-__pycache__/
+__pycache__
+.idea
+node_modules
 local_settings.py
 .DS_Store
+staticfiles/
