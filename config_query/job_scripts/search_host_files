@@ -5,9 +5,6 @@ import datetime
 import os
 import sys
 
-reload(sys)
-sys.setdefaultencoding("utf8")
-
 
 def _now(format="%Y-%m-%d %H:%M:%S"):
     return datetime.datetime.now().strftime(format)
@@ -15,18 +12,18 @@ def _now(format="%Y-%m-%d %H:%M:%S"):
 
 ##### 可在脚本开始运行时调用，打印当时的时间戳及PID。
 def job_start():
-    print ("[%s][PID:%s] job_start" % (_now(), os.getpid()))
+    print("[%s][PID:%s] job_start" % (_now(), os.getpid()))
 
 
 ##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。
 def job_success(msg):
-    print ("[%s][PID:%s] job_success:[%s]" % (_now(), os.getpid(), msg))
+    print("[%s][PID:%s] job_success:[%s]" % (_now(), os.getpid(), msg))
     sys.exit(0)
 
 
 ##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。
 def job_fail(msg):
-    print ("[%s][PID:%s] job_fail:[%s]" % (_now(), os.getpid(), msg))
+    print("[%s][PID:%s] job_fail:[%s]" % (_now(), os.getpid(), msg))
     sys.exit(1)
 
 
@@ -34,21 +31,21 @@ if __name__ == "__main__":
 
     job_start()
 
-    file_path = unicode(sys.argv[1], "utf-8")
+    file_path = sys.argv[1]
     file_suffix = sys.argv[2]
     file_size = 0
 
     if not os.path.exists(file_path):
-        print ("文件目录不存在")
+        print("文件目录不存在")
         sys.exit(0)
 
     for cur_file_name in os.listdir(file_path):
         cur_file_path = os.path.join(file_path, cur_file_name)
         if cur_file_name != " " and cur_file_name.endswith(file_suffix) and os.path.isfile(cur_file_path):
             file_size += os.path.getsize(cur_file_path)
-            print cur_file_name
+            print(cur_file_name)
 
-    print file_size
+    print(file_size)
     job_success("xxxx")
 
 ###### iJobs中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值

@@ -37,9 +37,9 @@ if __name__ == "__main__":
     # 要备份的文件列表
     file_list = sys.argv[2].split(",")
     # 输出文件目录
-    print os.path.dirname(file_list[0])
+    print(os.path.dirname(file_list[0]))
     # 输出文件后缀
-    print sys.argv[3]
+    print(sys.argv[3])
     # 打包的中间文件夹
     backup_directory = "{}{}".format("/tem_backup", datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
     # 创建中间文件夹
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     zip_command = "zip -qr '{}' {}".format(target, "".join(backup_directory))
 
     if os.system(zip_command) == 0:
-        print target
+        print(target)
         job_success("Backup Success !!!")
     else:
         job_fail("Backup Failed!")

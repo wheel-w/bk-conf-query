@@ -94,5 +94,6 @@
 	"台失败": "failed",
 	"执行失败": "Failed",
 	"执行成功": "Success",
-	"作业详情": "Job Detail"
+	"作业详情": "Job Detail",
+	"该目录禁止备份": "Backups are prohibited for this directory"
 }

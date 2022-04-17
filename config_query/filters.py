@@ -12,9 +12,9 @@ class HostFilter(django_filters.FilterSet):
     operator = django_filters.CharFilter(lookup_expr="icontains")
     bk_bak_operator = django_filters.CharFilter(lookup_expr="icontains")
     bk_cloud_id = django_filters.NumberFilter(lookup_expr="exact")
-    bk_biz_id = django_filters.CharFilter(lookup_expr="contains")
-    bk_set_id = django_filters.CharFilter(lookup_expr="contains")
-    bk_module_id = django_filters.CharFilter(lookup_expr="contains")
+    bk_biz_id = django_filters.CharFilter(lookup_expr="exact")
+    bk_set_id = django_filters.CharFilter(lookup_expr="exact")
+    bk_module_id = django_filters.CharFilter(lookup_expr="exact")
 
     class Meta:
         model = Host

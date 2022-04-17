@@ -64,14 +64,24 @@ class Host(models.Model):
     """
 
     bk_host_id = models.IntegerField(verbose_name="主机ID", primary_key=True)
-    bk_host_name = models.CharField(verbose_name="主机名称", max_length=128, blank=True, null=True)
-    bk_host_innerip = models.CharField(verbose_name="内网IP", max_length=128, blank=True, null=True)
-    bk_host_outerip = models.CharField(verbose_name="外网IP", max_length=128, blank=True, null=True)
-    host_system = models.CharField(verbose_name="操作系统类型", max_length=128, blank=True, null=True)
+    bk_host_name = models.CharField(
+        verbose_name="主机名称", max_length=128, blank=True, null=True
+    )
+    bk_host_innerip = models.CharField(
+        verbose_name="内网IP", max_length=128, blank=True, null=True
+    )
+    bk_host_outerip = models.CharField(
+        verbose_name="外网IP", max_length=128, blank=True, null=True
+    )
+    host_system = models.CharField(
+        verbose_name="操作系统类型", max_length=128, blank=True, null=True
+    )
     operator = models.TextField(verbose_name="负责人", blank=True, null=True)
     bk_bak_operator = models.TextField(verbose_name="备份负责人", blank=True, null=True)
     bk_cloud_id = models.IntegerField(verbose_name="云区域", blank=True, null=True)
-    bk_cloud_name = models.CharField(verbose_name="云区域名称", max_length=128, blank=True, null=True)
+    bk_cloud_name = models.CharField(
+        verbose_name="云区域名称", max_length=128, blank=True, null=True
+    )
     bk_biz_id = models.CharField(verbose_name="所属业务ID", max_length=128, default="")
     bk_set_id = models.CharField(verbose_name="所属集群ID", max_length=128, default="")
     bk_module_id = models.CharField(verbose_name="所属模块ID", max_length=128, default="")
@@ -82,7 +92,7 @@ class Host(models.Model):
         db_table = "config_query_host"
 
     def __str__(self):
-        return self.bk_host_id
+        return str(self.bk_host_id)
 
 
 class BackupHostFileRecord(models.Model):

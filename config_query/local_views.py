@@ -114,7 +114,9 @@ def sync_host_data(request):
         sync_data_task.delay(request.user.username)
 
     if command["value"] == SyncCommand.SYNC_SINGLE:
-        sync_host_flag = cache.get(command["business"]["bk_biz_id"], SyncTaskStatus.IDLE)
+        sync_host_flag = cache.get(
+            command["business"]["bk_biz_id"], SyncTaskStatus.IDLE
+        )
         if sync_host_flag in [SyncTaskStatus.RUNNING, SyncTaskStatus.WAIT]:
             return ConfigQueryResponse(result=False)
         cache.set(command["business"]["bk_biz_id"], SyncTaskStatus.WAIT, timeout=1800)
@@ -150,7 +152,11 @@ def backup_host_files(request):
     """
     serializer = JobBackupHostSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    backup_host_files_task.delay(request.user.username, serializer.data)
+    data = serializer.data
+    if data["file_directory"] != "/data/wheel_test":
+        message = "{}禁止备份".format(data["file_directory"])
+        return ConfigQueryResponse(result=False, message=message)
+    backup_host_files_task.delay(request.user.username, data)
     return ConfigQueryResponse()
 
 

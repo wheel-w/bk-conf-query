@@ -43,26 +43,6 @@ class TokenBackend(ModelBackend):
         user_model = get_user_model()
         try:
             user, _ = user_model.objects.get_or_create(username=username)
-            get_user_info_result, user_info = self.get_user_info(bk_token)
-            # 判断是否获取到用户信息,获取不到则返回None
-            if not get_user_info_result:
-                return None
-            user.set_property(key="qq", value=user_info.get("qq", ""))
-            user.set_property(key="language", value=user_info.get("language", ""))
-            user.set_property(key="time_zone", value=user_info.get("time_zone", ""))
-            user.set_property(key="role", value=user_info.get("role", ""))
-            user.set_property(key="phone", value=user_info.get("phone", ""))
-            user.set_property(key="email", value=user_info.get("email", ""))
-            user.set_property(key="wx_userid", value=user_info.get("wx_userid", ""))
-            user.set_property(key="chname", value=user_info.get("chname", ""))
-
-            # 用户如果不是管理员，则需要判断是否存在平台权限，如果有则需要加上
-            if not user.is_superuser and not user.is_staff:
-                role = user_info.get("role", "")
-                is_admin = True if str(role) == ROLE_TYPE_ADMIN else False
-                user.is_superuser = is_admin
-                user.is_staff = is_admin
-                user.save()
 
             return user
 

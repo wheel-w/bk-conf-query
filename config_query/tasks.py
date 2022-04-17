@@ -58,11 +58,18 @@ def sync_single_data(username, business, is_finished=False):
     同步指定业务的数据到数据库
     """
     # 保存业务信息到业务表
-    db_business = {"bk_biz_id": business["bk_biz_id"], "bk_biz_name": business["bk_biz_name"]}
-    Business.objects.update_or_create(bk_biz_id=business["bk_biz_id"], defaults=db_business)
+    db_business = {
+        "bk_biz_id": business["bk_biz_id"],
+        "bk_biz_name": business["bk_biz_name"],
+    }
+    Business.objects.update_or_create(
+        bk_biz_id=business["bk_biz_id"], defaults=db_business
+    )
 
     # 保存集群信息到集群表
-    set_list = cmdb.get_sets_info(username, bk_biz_id=business["bk_biz_id"])["data"]["info"]
+    set_list = cmdb.get_sets_info(username, bk_biz_id=business["bk_biz_id"])["data"][
+        "info"
+    ]
     online_set_dict = {}
     for sett in set_list:
         db_sett = {
@@ -81,7 +88,9 @@ def sync_single_data(username, business, is_finished=False):
     )
 
     # 保存模块信息到模块表
-    module_list = cmdb.get_modules_info(username, bk_biz_id=business["bk_biz_id"])["data"]["info"]
+    module_list = cmdb.get_modules_info(username, bk_biz_id=business["bk_biz_id"])[
+        "data"
+    ]["info"]
     online_module_dict = {}
     for module in module_list:
         db_module = {
@@ -101,7 +110,12 @@ def sync_single_data(username, business, is_finished=False):
     )
 
     # 保存主机信息到主机信息表
-    host_list = get_page_data(username, cmdb.get_host_info, business["bk_biz_id"], PageDataLimit.HOST_PAGE_LIMIT)
+    host_list = get_page_data(
+        username,
+        cmdb.get_host_info,
+        business["bk_biz_id"],
+        PageDataLimit.HOST_PAGE_LIMIT,
+    )
     online_host_dict = {}
     for host in host_list:
         db_host = {
@@ -116,7 +130,7 @@ def sync_single_data(username, business, is_finished=False):
             "bk_cloud_name": host["bk_cloud_name"],
             "bk_biz_id": business["bk_biz_id"],
             "bk_set_id": host["bk_set_id"],
-            "bk_module_id": host["bk_module_id"]
+            "bk_module_id": host["bk_module_id"],
         }
         online_host_dict[host["bk_host_id"]] = Host(**db_host)
 
@@ -125,8 +139,19 @@ def sync_single_data(username, business, is_finished=False):
         primary_key_name="bk_host_id",
         bk_biz_id=business["bk_biz_id"],
         online_data_dict=online_host_dict,
-        fields=["bk_host_innerip", "bk_host_name", "bk_host_outerip", "operator", "bk_bak_operator", "bk_cloud_id",
-                "bk_cloud_name", "host_system", "bk_biz_id", "bk_set_id", "bk_module_id"],
+        fields=[
+            "bk_host_innerip",
+            "bk_host_name",
+            "bk_host_outerip",
+            "operator",
+            "bk_bak_operator",
+            "bk_cloud_id",
+            "bk_cloud_name",
+            "host_system",
+            "bk_biz_id",
+            "bk_set_id",
+            "bk_module_id",
+        ],
     )
 
     if is_finished:
@@ -141,10 +166,14 @@ def backup_host_files_task(username, data):
     file_directory = data["file_directory"]
     file_list = data["file_list"]
 
-    file_abs_list = [posixpath.join(file_directory, file_name) for file_name in file_list]
+    file_abs_list = [
+        posixpath.join(file_directory, file_name) for file_name in file_list
+    ]
     file_abs_str = ",".join(file_abs_list)
-    params = f"wheel-w_backup_directory {file_abs_str} '{data['file_suffix']}'"
-    result, script_logs, params = job.execute_script_get_log(username, "backup_host_files", data, params)
+    params = f"/data/wheel_test_backup {file_abs_str} '{data['file_suffix']}'"
+    result, script_logs, params = job.execute_script_get_log(
+        username, "backup_host_files", data, params
+    )
     if not result:
         logger.info(f"备份文件脚本执行失败 params:{params} script_logs:{script_logs}")
         return
@@ -177,8 +206,12 @@ def search_host_files_task(username, data):
         username, "search_host_files", data, f"{file_path} {data['file_suffix']}"
     )
     if not result:
-        cache.set(search_host_files_task.request.id, {"message": script_logs}, timeout=300)
-        logger.info(f"搜索文件脚本执行失败 params:{file_path} {data['file_suffix']} script_logs:{script_logs}")
+        cache.set(
+            search_host_files_task.request.id, {"message": script_logs}, timeout=300
+        )
+        logger.info(
+            f"搜索文件脚本执行失败 params:{file_path} {data['file_suffix']} script_logs:{script_logs}"
+        )
         return
 
     result = {"file_list": [], "fail_host_info": []}

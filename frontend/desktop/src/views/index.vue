@@ -325,7 +325,7 @@
             },
             handleNavSelect (id, item) {
                 this.nav.navId = id
-                const finishPage = 'businessTopology'
+                const finishPage = 'businessTopology hostSearch backup_record'
                 if (finishPage.indexOf(item.href) === -1) {
                     this.$bkMessage({
                         message: this.$t('敬请期待'),
