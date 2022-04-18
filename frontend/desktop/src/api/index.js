@@ -5,7 +5,6 @@
 
 import Vue from 'vue'
 import axios from 'axios'
-import cookie from 'cookie'
 
 import CachedPromise from './cached-promise'
 import RequestQueue from './request-queue'
@@ -247,10 +246,12 @@ export default http
  * 向 http header 注入 CSRFToken，CSRFToken key 值与后端一起协商制定
  */
 export function injectCSRFTokenToHeaders () {
-    const CSRFToken = cookie.parse(document.cookie).csrftoken
-    if (CSRFToken !== undefined) {
-        axiosInstance.defaults.headers.common['X-CSRFToken'] = CSRFToken
-    } else {
-        console.warn('Can not find csrftoken in document.cookie')
+    http.get('/account/get_csrf_token/').then(res => {
+        if (res.result) {
+            axiosInstance.defaults.headers.common['X-CSRFToken'] = res.data
+        } else {
+            console.warn('Can not find csrftoken in document.cookie')
+        }
     }
+    )
 }

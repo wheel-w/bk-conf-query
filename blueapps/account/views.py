@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import time
 
 from django.http import JsonResponse
+from django.middleware import csrf
 from django.shortcuts import render
 
 from blueapps.account.decorators import login_exempt
@@ -44,7 +45,6 @@ def send_code_view(request):
 
 
 def get_user_info(request):
-
     return JsonResponse(
         {
             "code": 0,
@@ -56,3 +56,11 @@ def get_user_info(request):
             "message": "ok",
         }
     )
+
+
+def get_csrf_token(request):
+    """
+    前端获取csrf_token接口
+    """
+    csrf_token = csrf.get_token(request)
+    return JsonResponse({"result": True, "data": csrf_token, "message": "success"})

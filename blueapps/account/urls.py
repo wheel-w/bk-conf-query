@@ -22,4 +22,5 @@ urlpatterns = [
     url(r"^login_page/$", views.login_page, name="login_page"),
     url(r"^send_code/$", views.send_code_view, name="send_code"),
     url(r"^get_user_info/$", views.get_user_info, name="get_user_info"),
+    url(r"^get_csrf_token/$", views.get_csrf_token, name="get_csrf_token"),
 ]
