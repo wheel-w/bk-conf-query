@@ -162,7 +162,7 @@
                 businessList: [],
                 setList: [],
                 moduleList: [],
-                bkBizId: 1,
+                bkBizId: 2,
                 bkSetId: null,
                 bkModuleId: null,
                 operator: [],
@@ -183,7 +183,7 @@
         methods: {
             fetchPageData () {
                 this.filterCondition.bk_biz_id = this.bkBizId
-                this.businessName = '测试业务'
+                this.businessName = '标准运维'
                 this.get_business_info()
                 this.get_sets_of_business()
                 this.get_filter_hosts()
