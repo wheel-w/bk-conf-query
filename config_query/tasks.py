@@ -8,10 +8,9 @@ from django.core.cache import caches
 
 from config_query import cmdb, job
 from config_query.base import (
-    PageDataLimit,
     SyncTaskStatus,
+    batch_request,
     bulk_create_or_update_delete,
-    get_page_data,
 )
 from config_query.models import BackupHostFileRecord, Business, Host, Module, Set
 
@@ -58,13 +57,16 @@ def sync_single_data(username, business, is_finished=False):
     同步指定业务的数据到数据库
     """
     # 保存业务信息到业务表
-    db_business = {
-        "bk_biz_id": business["bk_biz_id"],
-        "bk_biz_name": business["bk_biz_name"],
-    }
-    Business.objects.update_or_create(
-        bk_biz_id=business["bk_biz_id"], defaults=db_business
-    )
+    result = cmdb.get_business_info(username, {"bk_biz_id": business["bk_biz_id"]})
+    if result["result"] and result["data"]["info"]:
+        Business.objects.update_or_create(
+            bk_biz_id=business["bk_biz_id"], defaults=result["data"]["info"][0]
+        )
+    else:
+        Business.objects.filter(bk_biz_id=business["bk_biz_id"]).delete()
+        if is_finished:
+            cache.set("sync_all", SyncTaskStatus.IDLE, timeout=1800)
+        return
 
     # 保存集群信息到集群表
     set_list = cmdb.get_sets_info(username, bk_biz_id=business["bk_biz_id"])["data"][
@@ -110,11 +112,10 @@ def sync_single_data(username, business, is_finished=False):
     )
 
     # 保存主机信息到主机信息表
-    host_list = get_page_data(
-        username,
+    host_list = batch_request(
         cmdb.get_host_info,
-        business["bk_biz_id"],
-        PageDataLimit.HOST_PAGE_LIMIT,
+        {"username": "wheelwang", "bk_biz_id": business["bk_biz_id"]},
+        page_param=lambda x, y: {"page": x, "page_size": y},
     )
     online_host_dict = {}
     for host in host_list:
