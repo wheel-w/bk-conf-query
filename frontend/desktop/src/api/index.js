@@ -175,7 +175,7 @@ function handleResponse ({ config, response, resolve, reject }) {
     if (store.state.curBusiness.bk_biz_name) {
         title = `${applyInfo}[${bizManage}]${authInfo}[${store.state.curBusiness.bk_biz_name}(${biz})]`
     }
-    if (response.data.code === 403 && flag === true) {
+    if (response.code === 403 && flag === true) {
         Vue.prototype.$bkInfo({
             type: 'bk-icon icon-lock',
             width: '800px',
@@ -185,7 +185,7 @@ function handleResponse ({ config, response, resolve, reject }) {
             subTitle: title,
             theme: 'success',
             confirmFn (vm) {
-                window.open(response.data.data)
+                window.open(response.data)
                 flag = true
             },
             cancelFn (vm) {
