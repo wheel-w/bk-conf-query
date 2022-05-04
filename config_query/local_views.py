@@ -152,9 +152,10 @@ def filter_hosts(request):
                 "bk_host_innerip": host.bk_host_innerip,
                 "bk_host_outerip": host.bk_host_outerip,
                 "bk_cloud_id": host.bk_cloud_id,
+                "bk_cloud_name": host.bk_cloud_name,
                 "operator": host.operator,
                 "bk_bak_operator": host.bk_bak_operator,
-                "bk_os_type": host.bk_os_type,
+                "host_system": host.host_system,
                 "is_auth": auth_host[str(host.bk_host_id)]["bk_host_manage"],
             }
         )
@@ -163,7 +164,6 @@ def filter_hosts(request):
 
 
 @api_view(["GET"])
-@permission_classes([IsBizAccessIam])
 def host_base_info(request, bk_host_id=None):
     """
     获取主机详细信息

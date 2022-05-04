@@ -58,12 +58,7 @@
                                             <bk-table-column :label="$t('内网IP')" prop="bk_host_innerip" align="center"></bk-table-column>
                                             <bk-table-column :label="$t('外网IP')" prop="bk_host_outerip" align="center"></bk-table-column>
                                             <bk-table-column :label="$t('云区域')" prop="bk_cloud_name" align="center"></bk-table-column>
-                                            <bk-table-column :label="$t('主机类型')" prop="bk_os_type" align="center">
-                                                <template slot-scope="props">
-                                                    <span v-if="props.row.bk_os_type === 1">Linux</span>
-                                                    <span v-if="props.row.bk_os_type === 2">Windows</span>
-                                                    <span v-if="props.row.bk_os_type === 3">Aix</span>
-                                                </template>
+                                            <bk-table-column :label="$t('主机类型')" prop="host_system" align="center">
                                             </bk-table-column>
                                             <bk-table-column :label="$t('操作')" align="center">
                                                 <template slot-scope="props">
@@ -125,12 +120,7 @@
                             <bk-table-column :label="$t('主机IP')" prop="bk_host_innerip" align="center"></bk-table-column>
                             <bk-table-column :label="$t('云区域')" prop="bk_cloud_name" align="center"></bk-table-column>
                             <bk-table-column :label="$t('主机名称')" prop="bk_host_name" align="center"></bk-table-column>
-                            <bk-table-column :label="$t('主机类型')" prop="bk_os_type" align="center">
-                                <template slot-scope="props">
-                                    <span v-if="props.row.bk_os_type === 1">Linux</span>
-                                    <span v-if="props.row.bk_os_type === 2">Windows</span>
-                                    <span v-if="props.row.bk_os_type === 3">Aix</span>
-                                </template>
+                            <bk-table-column :label="$t('主机类型')" prop="host_system" align="center">
                             </bk-table-column>
                             <bk-table-column :label="$t('操作')" align="center" width="80">
                                 <template slot-scope="props">
@@ -304,8 +294,8 @@
                 return bytes + ' ' + symbols[i]
             },
             applyAuth (row) {
-                this.$axios.get(`/api/make_host_apply_url/${row.bk_biz_id.replace(',', '')}/${row.bk_set_id.split(',')[0]}/${row.bk_module_id.split(',')[0]}/${row.bk_host_id}/`).then(res => {
-                    window.open(res.data.data)
+                this.$http.get(`/api/make_host_apply_url/${row.bk_biz_id.replace(',', '')}/${row.bk_set_id.split(',')[0]}/${row.bk_module_id.split(',')[0]}/${row.bk_host_id}/`).then(res => {
+                    window.open(res.data)
                 })
             },
             selectable (row, index) {

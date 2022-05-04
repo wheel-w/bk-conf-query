@@ -121,9 +121,6 @@
                         @page-limit-change="handleLimitChange">
                         <bk-table-column type="index" :label="$t('序列')" width="70" align="center"></bk-table-column>
                         <bk-table-column :label="$t('主机ID')" prop="bk_host_id" align="center">
-                            <template slot-scope="props">
-                                <bk-button class="mr10" theme="primary" text @click="lookDetail(props.row)">{{props.row.bk_host_id}}</bk-button>
-                            </template>
                         </bk-table-column>
                         <bk-table-column :label="$t('主机名称')" prop="bk_host_name" align="center"></bk-table-column>
                         <bk-table-column :label="$t('内网IP')" prop="bk_host_innerip" align="center"></bk-table-column>
@@ -131,11 +128,11 @@
                         <bk-table-column :label="$t('云区域')" prop="bk_cloud_id" align="center"></bk-table-column>
                         <bk-table-column :label="$t('负责人')" prop="operator" align="center"></bk-table-column>
                         <bk-table-column :label="$t('备份负责人')" prop="bk_bak_operator" align="center"></bk-table-column>
-                        <!-- <bk-table-column :label="$t('操作')" align="center">
+                        <bk-table-column :label="$t('操作')" align="center">
                             <template slot-scope="props">
                                 <bk-button class="mr10" theme="primary" text @click="applyAuth(props.row)" v-if="!props.row.is_auth">{{$t('权限申请')}}</bk-button>
                             </template>
-                        </bk-table-column> -->
+                        </bk-table-column>
                     </bk-table>
                 </div>
     
@@ -221,8 +218,8 @@
                 window.open('https://bkiam.paas-edu.bktencent.com/')
             },
             applyAuth (row) {
-                this.$axios.get(`/make_host_apply_url/${row.bk_biz_id.replace(',', '')}/${row.bk_set_id.split(',')[0]}/${row.bk_module_id.split(',')[0]}/${row.bk_host_id}/`).then(res => {
-                    window.open(res.data.data)
+                this.$http.get(`/api/make_host_apply_url/${row.bk_biz_id.replace(',', '')}/${row.bk_set_id.split(',')[0]}/${row.bk_module_id.split(',')[0]}/${row.bk_host_id}/`).then(res => {
+                    window.open(res.data)
                 })
             },
             businessToggle (flag) {

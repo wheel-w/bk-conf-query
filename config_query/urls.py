@@ -40,7 +40,7 @@ local_urlpatterns = (
         local_views.search_host_files_result,
     ),
     path(
-        "local/make_host_apply_url/<int:bk_biz_id>/<int:bk_set_id>/<int:bk_module_id>/<int:bk_host_id>/",
+        "make_host_apply_url/<int:bk_biz_id>/<int:bk_set_id>/<int:bk_module_id>/<int:bk_host_id>/",
         local_views.make_host_apply_url,
     ),
 )
