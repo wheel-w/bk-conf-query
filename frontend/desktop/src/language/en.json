@@ -1,7 +1,7 @@
 {
-	"语言": "language",
-	"中文": "Chinese",
-	"英文": "English",
+	"语言": "语言",
+    "中文": "中文",
+    "英文": "英文",
 	"蓝鲸丨配置查询系统": "Blueking丨Configure Query System",
 	"填写查询条件": "Enter the query conditions",
 	"配置平台": "CMDB",
@@ -95,5 +95,12 @@
 	"执行失败": "Failed",
 	"执行成功": "Success",
 	"作业详情": "Job Detail",
+	"该操作需要权限": "This operation requires permission",
+	"权限申请": "Apply",
+	"主机类型": "Os Type",
+	"windows和linux文件分隔符请使用/": "Please use / for windows and linux file separator",
+	"无业务权限": "No Business Authority",
+	"你没有相应业务的访问权限，请前往申请相关业务权限": "You don’t have access to the corresponding business, please go to apply for the relevant business permissions",
+	"去申请": "Apply",
 	"该目录禁止备份": "Backups are prohibited for this directory"
 }

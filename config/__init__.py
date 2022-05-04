@@ -41,6 +41,9 @@ def get_env_or_raise(key):
 APP_CODE = os.getenv("BKPAAS_APP_ID", "")
 # 应用用于调用云 API 的 Secret
 SECRET_KEY = os.getenv("BKPAAS_APP_SECRET", "")
+# 权限中心网关
+BK_APIGATEWAY_URL = get_env_or_raise("BK_APIGATEWAY_URL")
+IAM_APP_URL = get_env_or_raise("BK_IAM_APP_URL")
 
 # SaaS运行版本，如非必要请勿修改
 RUN_VER = "open"

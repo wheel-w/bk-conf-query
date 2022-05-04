@@ -1,176 +1,221 @@
 <template>
-    <div class="host-sea-content">
-        <div class="my-dialog">
-            <bk-dialog v-model="treeVisible"
-                :fullscreen="true"
-                :show-footer="true"
-                render-directive="if"
-            >
-                <div>
-                    <bk-tab :active.sync="active" :type="currentType" style="margin-top: 20px;;">
-                        <bk-tab-panel
-                            v-for="(panel, index) in panels"
-                            v-bind="panel"
-                            :key="index">
-                        </bk-tab-panel>
-                        <div v-if="active === 'ipSelect'" style="height:calc(100vh - 350px);display:flex;width: calc(80vw - 200px);">
-                            <div class="my-tree">
-                                <section style="margin-top:15px">
-                                    <bk-big-tree ref="tree"
-                                        @select-change="treeDataChange"
-                                        :selectable="true"
-                                        :data="treeData"
-                                        node-icon="bk-icon icon-rtx"
-                                        :padding="30">
-                                    </bk-big-tree>
-                                </section>
-                            </div>
-                            <div class="my-host-table">
-                                <div class="my-host-table-content">
-                                    <bk-table
-                                        ref="hostTable"
-                                        :data="data"
-                                        @selection-change="selectHost"
-                                        :max-height="'calc(100vh - 450px)'"
-                                        :height="'calc(100vh - 450px)'"
-                                        :pagination="pagination"
-                                        :row-key="getRowKeys"
-                                        @page-change="handlePageChange"
-                                        @page-limit-change="handleLimitChange">
-                                        <bk-table-column type="selection" :reserve-selection="true" width="60"></bk-table-column>
-                                        <bk-table-column type="index" :label="$t('序列')" width="70" align="center"></bk-table-column>
-                                        <bk-table-column :label="$t('主机ID')" prop="bk_host_id" align="center"></bk-table-column>
-                                        <bk-table-column :label="$t('主机名称')" prop="bk_host_name" align="center"></bk-table-column>
-                                        <bk-table-column :label="$t('内网IP')" prop="bk_host_innerip" align="center"></bk-table-column>
-                                        <bk-table-column :label="$t('外网IP')" prop="bk_host_outerip" align="center"></bk-table-column>
-                                        <bk-table-column :label="$t('云区域')" prop="bk_cloud_name" align="center">
-                                        </bk-table-column>
-                                    </bk-table>
+    <div style="height:100%">
+        <bk-exception class="exception-wrap-item" type="403" v-if="!isBizAuth">
+            <span>{{$t('无业务权限')}}</span>
+            <div class="text-subtitle">{{$t('你没有相应业务的访问权限，请前往申请相关业务权限')}}</div>
+            <div class="text-wrap">
+                <span class="text-btn" @click="applyBizAuth">{{$t('去申请')}}</span>
+            </div>
+        </bk-exception>
+        <div class="host-sea-content" v-if="isBizAuth">
+            <div class="my-dialog">
+                <bk-dialog v-model="treeVisible"
+                    :fullscreen="true"
+                    :show-footer="true"
+                    render-directive="if"
+                >
+                    <div>
+                        <bk-tab :active.sync="active" :type="currentType" style="margin-top: 20px;;">
+                            <bk-tab-panel
+                                v-for="(panel, index) in panels"
+                                v-bind="panel"
+                                :key="index">
+                            </bk-tab-panel>
+                            <div v-if="active === 'ipSelect'" style="height:calc(100vh - 350px);display:flex;width: calc(80vw - 200px);">
+                                <div class="my-tree">
+                                    <div style="text-align:center">
+                                        <bk-button :theme="'default'" type="submit" @click="handleReset" class="mr10" style="width: 80%;">
+                                            {{$t('重置')}}
+                                        </bk-button>
+                                    </div>
+                                
+                                    <section style="margin-top:15px">
+                                        <bk-big-tree ref="tree"
+                                            @select-change="treeDataChange"
+                                            :selectable="true"
+                                            :data="treeData"
+                                            node-icon="bk-icon icon-rtx"
+                                            :padding="30">
+                                        </bk-big-tree>
+                                    </section>
                                 </div>
+                                <div class="my-host-table" v-bkloading="{ isLoading: isDataLoading , zIndex: 10 }">
+                                    <div class="my-host-table-content">
+                                        <bk-table
+                                            ref="hostTable"
+                                            :data="data"
+                                            @selection-change="selectHost"
+                                            :max-height="'calc(100vh - 450px)'"
+                                            :height="'calc(100vh - 450px)'"
+                                            :pagination="pagination"
+                                            :row-key="getRowKeys"
+                                            @page-change="handlePageChange"
+                                            @page-limit-change="handleLimitChange">
+                                            <bk-table-column type="selection" :reserve-selection="true" width="60" :selectable="selectable"></bk-table-column>
+                                            <bk-table-column type="index" :label="$t('序列')" width="70" align="center"></bk-table-column>
+                                            <bk-table-column :label="$t('主机ID')" prop="bk_host_id" align="center"></bk-table-column>
+                                            <bk-table-column :label="$t('主机名称')" prop="bk_host_name" align="center"></bk-table-column>
+                                            <bk-table-column :label="$t('内网IP')" prop="bk_host_innerip" align="center"></bk-table-column>
+                                            <bk-table-column :label="$t('外网IP')" prop="bk_host_outerip" align="center"></bk-table-column>
+                                            <bk-table-column :label="$t('云区域')" prop="bk_cloud_name" align="center"></bk-table-column>
+                                            <bk-table-column :label="$t('主机类型')" prop="bk_os_type" align="center">
+                                                <template slot-scope="props">
+                                                    <span v-if="props.row.bk_os_type === 1">Linux</span>
+                                                    <span v-if="props.row.bk_os_type === 2">Windows</span>
+                                                    <span v-if="props.row.bk_os_type === 3">Aix</span>
+                                                </template>
+                                            </bk-table-column>
+                                            <bk-table-column :label="$t('操作')" align="center">
+                                                <template slot-scope="props">
+                                                    <bk-button class="mr10" theme="primary" text @click="applyAuth(props.row)" v-if="!props.row.is_auth">{{$t('权限申请')}}</bk-button>
+                                                </template>
+                                            </bk-table-column>
+                                        </bk-table>
+
+                                    </div>
             
+                                </div>
+
                             </div>
+                            <div v-if="active === 'ipInput'" style="height:calc(100vh - 350px);display:flex;width: calc(80vw - 200px);">
+                                <bk-input
+                                    :placeholder="ipInputPlaceholder"
+                                    :type="'textarea'"
+                                    v-model="value"
+                                >
+                                </bk-input>
+                            </div>
+                        </bk-tab>
+                    </div>
+                    <div slot="footer">
+                        <span class="select-items">{{$t('已选择')}}:  <span class="strong number choose-host">{{multipleSelection.length}}</span>{{$t('台主机')}}</span>
 
-                        </div>
-                        <div v-if="active === 'ipInput'" style="height:calc(100vh - 350px);display:flex;width: calc(80vw - 200px);">
-                            <bk-input
-                                :placeholder="ipInputPlaceholder"
-                                :type="'textarea'"
-                                v-model="value"
-                            >
-                            </bk-input>
-                        </div>
-                    </bk-tab>
-                </div>
-                <div slot="footer">
-                    <span class="select-items">{{$t('已选择')}}:  <span class="strong number choose-host">{{multipleSelection.length}}</span>{{$t('台主机')}}</span>
-
-                    <bk-button :theme="'primary'" :title="'主要按钮'" class="mr50" @click="doSeclectHosts">
-                        {{$t('确认添加')}}
-                    </bk-button>
-                </div>
-            </bk-dialog>
-        </div>
-        <div class="my-form">
-            <bk-form :label-width="120" :model="formData">
-                <bk-form-item :label="$t('业务')" :required="true">
-                    <bk-select v-model="bkBizId" searchable @change="businessChange" :placeholder="$t('请选择业务')" :search-with-pinyin="true">
-                        <bk-option v-for="option in businessList"
-                            :key="option.bk_biz_id"
-                            :id="option.bk_biz_id"
-                            :name="option.bk_biz_name">
-                        </bk-option>
-                    </bk-select>
-                </bk-form-item>
-                <bk-form-item :label="$t('目标主机')" :required="true" :property="'name'">
-                    <bk-button :theme="'primarydefault'" type="submit" :title="'基础按钮'" @click="addHosts" class="mr10">
-                        {{$t('添加服务器')}}
-                    </bk-button>
-                    <bk-button :theme="'default'" :title="'主要按钮'" class="mr10" @click="clearHosts">
-                        {{$t('清空')}}
-                    </bk-button>
-                    <bk-table style="margin-top: 15px;"
-                        :data="selectData"
-                        :max-height="'calc(100vh - 600px)'"
-                        :height="'calc(100vh - 600px)'"
+                        <bk-button :theme="'primary'" :title="'主要按钮'" class="mr50" @click="doSeclectHosts">
+                            {{$t('确认添加')}}
+                        </bk-button>
+                    </div>
+                </bk-dialog>
+            </div>
+            <div class="my-form">
+                <bk-form :label-width="120" :model="formData">
+                    <bk-form-item :label="$t('业务')" :required="true">
+                        <bk-select v-model="bkBizId" searchable @change="businessChange" :placeholder="$t('请选择业务')" :search-with-pinyin="true">
+                            <bk-option v-for="option in businessList"
+                                :key="option.bk_biz_id"
+                                :id="option.bk_biz_id"
+                                :name="option.bk_biz_name">
+                                {{option.bk_biz_name}}
+                                <i class="bk-icon icon-lock" v-if="!option.is_auth"></i>
+                            </bk-option>
+                        </bk-select>
+                    </bk-form-item>
+                    <bk-form-item :label="$t('目标主机')" :required="true" :property="'name'">
+                        <bk-button :theme="'primarydefault'" type="submit" @click="addHosts" class="mr10">
+                            {{$t('添加服务器')}}
+                        </bk-button>
+                        <bk-button :theme="'default'" :title="'主要按钮'" class="mr10" @click="clearHosts">
+                            {{$t('清空')}}
+                        </bk-button>
+                        <bk-table style="margin-top: 15px;"
+                            :data="selectData"
+                            :max-height="'calc(100vh - 600px)'"
+                            :height="'calc(100vh - 600px)'"
+                        >
+                            <bk-table-column type="index" :label="$t('序列')" width="70" align="center"></bk-table-column>
+                            <bk-table-column :label="$t('主机IP')" prop="bk_host_innerip" align="center"></bk-table-column>
+                            <bk-table-column :label="$t('云区域')" prop="bk_cloud_name" align="center"></bk-table-column>
+                            <bk-table-column :label="$t('主机名称')" prop="bk_host_name" align="center"></bk-table-column>
+                            <bk-table-column :label="$t('主机类型')" prop="bk_os_type" align="center">
+                                <template slot-scope="props">
+                                    <span v-if="props.row.bk_os_type === 1">Linux</span>
+                                    <span v-if="props.row.bk_os_type === 2">Windows</span>
+                                    <span v-if="props.row.bk_os_type === 3">Aix</span>
+                                </template>
+                            </bk-table-column>
+                            <bk-table-column :label="$t('操作')" align="center" width="80">
+                                <template slot-scope="props">
+                                    <bk-button theme="primary" text @click="remove(props.row)">{{$t('移除')}}</bk-button>
+                                </template>
+                            </bk-table-column>
+                        </bk-table>
+                    </bk-form-item>
+                    <bk-form-item :label="$t('主机类型')" :required="true">
+                        <bk-radio-group v-model="osType">
+                            <bk-radio :value="0">linux</bk-radio>
+                            <bk-radio :value="1">windows</bk-radio>
+                        </bk-radio-group>
+                    </bk-form-item>
+                    <bk-form-item :label="$t('目录')" :required="true">
+                        <bk-input v-model="formData.file_path"></bk-input>
+                    </bk-form-item>
+                    <bk-form-item :label="$t('文件后缀')" :required="true">
+                        <bk-input v-model="formData.file_suffix1"></bk-input>
+                    </bk-form-item>
+                    <bk-form-item>
+                        <bk-button style="margin-right: 3px;" theme="primary" title="提交" @click.stop.prevent="searchHostFiles" :loading="isSearch">{{$t('查询')}}</bk-button>
+                        <bk-button v-if="isError" style="margin-left: 30px;" theme="warning" @click="isShowErrInfo = true" title="提交">{{$t('查看异常信息')}}</bk-button>
+                    </bk-form-item>
+                </bk-form>
+                <div class="my-step">
+                    <bk-process
+                        :list="loadingList"
+                        :cur-process.sync="loadingProcess"
+                        :display-key="'content'"
+                        :show-steps="false"
+                        style="pointer-events:none"
+                        :controllable="false"
                     >
-                        <bk-table-column type="index" :label="$t('序列')" width="70" align="center"></bk-table-column>
-                        <bk-table-column :label="$t('主机IP')" prop="bk_host_innerip" align="center"></bk-table-column>
-                        <bk-table-column :label="$t('云区域')" prop="bk_cloud_name" align="center">
-                        </bk-table-column>
-                        <bk-table-column :label="$t('主机名称')" prop="bk_host_name" align="center"></bk-table-column>
-                        <bk-table-column :label="$t('操作')" align="center" width="80">
+                    </bk-process>
+                </div>
+            </div>
+    
+            <div class="my-search-result">
+                <div style="margin-top:30px;margin-left:20px">
+                    <bk-table
+                        :data="resultData"
+                        :max-height="'calc(100vh - 450px)'"
+                        :height="'calc(100vh - 450px)'">
+                        <bk-table-column type="expand" width="30">
                             <template slot-scope="props">
-                                <bk-button theme="primary" text @click="remove(props.row)">{{$t('移除')}}</bk-button>
+                                <bk-table :data="props.row.file_list.split(',')" :outer-border="false" :show-header="false" :header-cell-style="{ background: '#fff', borderRight: 'none' }">
+                                    <bk-table-column align="center" :show-overflow-tooltip="true">
+                                        <template slot-scope="props1">
+                                            <div style="text-align:center">{{props1.row}}</div>
+                                        </template>
+                                    </bk-table-column>
+                                </bk-table>
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column type="index" :label="$t('序列')" width="70" align="center"></bk-table-column>
+                        <bk-table-column :label="$t('主机IP')" prop="ip.ip" align="center"></bk-table-column>
+                        <bk-table-column :label="$t('文件目录')" prop="file_directory" align="center"></bk-table-column>
+                        <bk-table-column :label="$t('文件列表')" prop="file_list" align="center"></bk-table-column>
+                        <bk-table-column :label="$t('文件大小')" prop="file_size" align="center">
+                            <template slot-scope="props">
+                                {{byteConvert(props.row.file_size)}}
+                            </template>
+                        </bk-table-column>
+                        <bk-table-column :label="$t('文件数量')" prop="file_count" align="center"></bk-table-column>
+                        <bk-table-column :label="$t('操作')" align="center">
+                            <template slot-scope="props">
+                                <bk-button class="mr10" theme="primary" text @click="backupFile(props.row)" :disabled="props.row.isBackup || props.row.file_count === 0">{{$t('立即备份')}}</bk-button>
                             </template>
                         </bk-table-column>
                     </bk-table>
-                </bk-form-item>
-                <bk-form-item :label="$t('目录')" :required="true">
-                    <bk-input v-model="formData.file_path"></bk-input>
-                </bk-form-item>
-                <bk-form-item :label="$t('文件后缀')" :required="true">
-                    <bk-input v-model="formData.file_suffix1"></bk-input>
-                </bk-form-item>
-                <bk-form-item>
-                    <bk-button style="margin-right: 3px;" theme="primary" title="提交" @click.stop.prevent="searchHostFiles" :loading="isSearch">{{$t('查询')}}</bk-button>
-                    <bk-button v-if="isError" style="margin-left: 30px;" theme="warning" @click="isShowErrInfo = true" title="提交">{{$t('查看异常信息')}}</bk-button>
-                </bk-form-item>
-            </bk-form>
-            <div class="my-step">
-                <bk-process
-                    :list="loadingList"
-                    :cur-process.sync="loadingProcess"
-                    :display-key="'content'"
-                    :show-steps="false"
-                    style="pointer-events:none"
-                    :controllable="false"
-                >
-                </bk-process>
-            </div>
-        </div>
-    
-        <div class="my-search-result">
-            <div style="margin-top:30px;margin-left:20px">
-                <bk-table
-                    :data="resultData"
-                    :max-height="'calc(100vh - 450px)'"
-                    :height="'calc(100vh - 450px)'">
-                    <bk-table-column type="expand" width="30">
-                        <template slot-scope="props">
-                            <bk-table :data="props.row.file_list.split(',')" :outer-border="false" :show-header="false" :header-cell-style="{ background: '#fff', borderRight: 'none' }">
-                                <bk-table-column align="center" :show-overflow-tooltip="true">
-                                    <template slot-scope="props1">
-                                        <div style="text-align:center">{{props1.row}}</div>
-                                    </template>
-                                </bk-table-column>
-                            </bk-table>
-                        </template>
-                    </bk-table-column>
-                    <bk-table-column type="index" :label="$t('序列')" width="70" align="center"></bk-table-column>
-                    <bk-table-column :label="$t('主机IP')" prop="ip.ip" align="center"></bk-table-column>
-                    <bk-table-column :label="$t('文件目录')" prop="file_directory" align="center"></bk-table-column>
-                    <bk-table-column :label="$t('文件列表')" prop="file_list" align="center"></bk-table-column>
-                    <bk-table-column :label="$t('文件大小')" prop="file_size" align="center"></bk-table-column>
-                    <bk-table-column :label="$t('文件数量')" prop="file_count" align="center"></bk-table-column>
-                    <bk-table-column :label="$t('操作')" align="center">
-                        <template slot-scope="props">
-                            <bk-button class="mr10" theme="primary" text @click="backupFile(props.row)" :disabled="props.row.isBackup || props.row.file_count === 0">{{$t('立即备份')}}</bk-button>
-                        </template>
-                    </bk-table-column>
-                </bk-table>
-            </div>
-           
-        </div>
-        <bk-sideslider :is-show.sync="isShowErrInfo" :quick-close="true" :show-mask="false" :width="500" :transfer="true">
-            <div slot="header">{{ $t("错误详情") }}</div>
-            <div class="p20" slot="content">
-                <div v-for="(item,index) in errInfo" :key="index">
-                    <bk-alert type="error" style="margin: 10px;">
-                        <div slot="title">{{$t(item.ip)}} : {{item.err_msg}}</div>
-                    </bk-alert>
                 </div>
+           
             </div>
-        </bk-sideslider>
+            <bk-sideslider :is-show.sync="isShowErrInfo" :quick-close="true" :show-mask="false" :width="500" :transfer="true">
+                <div slot="header">{{ $t("错误详情") }}</div>
+                <div class="p20" slot="content">
+                    <div v-for="(item,index) in errInfo" :key="index">
+                        <bk-alert type="error" style="margin: 10px;">
+                            <div slot="title">{{$t(item.ip)}} : {{item.err_msg}}</div>
+                        </bk-alert>
+                    </div>
+                </div>
+            </bk-sideslider>
+        </div>
     </div>
   
 </template>
@@ -187,6 +232,10 @@
                 bkModuleId: '',
                 businessList: '',
                 multipleSelection: [],
+                osType: 0,
+                isBizAuth: true,
+                isDataLoading: false,
+                curBusiness: {},
                 loadingProcess: 1,
                 isSearch: false,
                 interval: null,
@@ -229,13 +278,57 @@
         },
         methods: {
             fetchPageData () {
-                this.get_business_info()
+                this.$http.get('/api/business/').then(res => {
+                    this.businessList = res.data
+                    this.isBizAuth = this.businessList[0].is_auth
+                })
+            },
+            applyBizAuth () {
+                window.open('https://bkiam.paas-edu.bktencent.com/')
+            },
+            byteConvert (bytes) {
+                if (isNaN(bytes)) {
+                    return ''
+                }
+                const symbols = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+                let exp = Math.floor(Math.log(bytes) / Math.log(2))
+                if (exp < 1) {
+                    exp = 0
+                }
+                const i = Math.floor(exp / 10)
+                bytes = bytes / Math.pow(2, 10 * i)
+ 
+                if (bytes.toString().length > bytes.toFixed(2).toString().length) {
+                    bytes = bytes.toFixed(2)
+                }
+                return bytes + ' ' + symbols[i]
+            },
+            applyAuth (row) {
+                this.$axios.get(`/api/make_host_apply_url/${row.bk_biz_id.replace(',', '')}/${row.bk_set_id.split(',')[0]}/${row.bk_module_id.split(',')[0]}/${row.bk_host_id}/`).then(res => {
+                    window.open(res.data.data)
+                })
+            },
+            selectable (row, index) {
+                return row.is_auth
+            },
+            handleReset () {
+                this.bkSetId = null
+                this.bkModuleId = null
+                this.multipleSelection = this.selectData
+                this.pagination.current = 1
+                this.get_filter_hosts()
+                this.get_sets_of_business()
             },
             doSeclectHosts () {
                 this.selectData = this.multipleSelection
                 this.treeVisible = false
             },
-            businessChange () {
+            businessChange (id) {
+                this.businessList.forEach(item => {
+                    if (item.bk_biz_id === id) {
+                        this.curBusiness = item
+                    }
+                })
                 this.bkSetId = null
                 this.bkModuleId = null
                 this.selectData = []
@@ -319,7 +412,8 @@
                     ip_list: [row.ip],
                     file_suffix: this.formData.file_suffix1,
                     file_list: row.file_list.split(','),
-                    file_directory: row.file_directory
+                    file_directory: row.file_directory,
+                    os_type: row.os_type
                 }
                 this.$http.post('/api/backup_host_files/', data).then(res => {
                     if (res.result) {
@@ -339,6 +433,7 @@
             },
             searchHostFiles () {
                 this.formData.bk_biz_id = this.bkBizId
+                this.formData.os_type = this.osType
                 this.formData.ip_list = []
                 this.selectData.forEach(ele => {
                     this.formData.ip_list.push({
@@ -366,6 +461,14 @@
                     this.$bkMessage({
                         theme: 'warning',
                         message: this.$t('请输入文件目录'),
+                        offset: '80'
+                    })
+                    return
+                }
+                if (this.formData.file_path.indexOf('\\') !== -1) {
+                    this.$bkMessage({
+                        theme: 'warning',
+                        message: this.$t('windows和linux文件分隔符请使用/'),
                         offset: '80'
                     })
                     return
@@ -470,6 +573,7 @@
                 })
             },
             get_sets_of_business () {
+                this.$store.commit('setCurBusiness', this.curBusiness)
                 this.$http.get(`/api/sets_of_business/${this.bkBizId}/`).then(res => {
                     this.treeData = res.data
                     this.setList = res.data
@@ -486,10 +590,16 @@
                 this.filterCondition.bk_module_id = this.bkModuleId
                 this.filterCondition.start = (this.pagination.current - 1) * this.pagination.limit
                 this.filterCondition.limit = this.pagination.limit
+                this.data = []
+                this.isDataLoading = true
+                this.$store.commit('setCurBusiness', this.curBusiness)
                 this.$http.post(`/api/filter_hosts/?start=${this.filterCondition.start}&limit=${this.pagination.limit}`, this.filterCondition).then(res => {
-                    this.pagination.count = res.count
-                    this.data = res.data
-                    setTimeout(this.rowMultipleChecked(), 500)
+                    if (res.data.code !== 403) {
+                        this.pagination.count = res.count
+                        this.data = res.data
+                        setTimeout(this.rowMultipleChecked(), 500)
+                    }
+                    this.isDataLoading = false
                 })
             }
         }
@@ -557,4 +667,9 @@
     line-height: 32px;
     display: none;
 }
+</style>
+<style lang="postcss">
+    .bk-form-radio {
+        margin-right: 30px;
+    }
 </style>

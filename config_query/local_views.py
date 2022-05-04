@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 from django.core.cache import caches
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 
 from config_query import cmdb
 from config_query.base import SyncCommand, SyncTaskStatus
+from config_query.drf_permission import IsBizAccessIam
 from config_query.filters import HostFilter
+from config_query.iam_permission import Permission
 from config_query.models import BackupHostFileRecord, Business, Host, Module, Set
 from config_query.paginations import ConfigQueryLimitOffsetPagination
 from config_query.response import ConfigQueryResponse
 from config_query.serializers import (
     BackupHostFileRecordSerializer,
-    BusinessSerializer,
-    HostSerializer,
     JobBackupHostSerializer,
     JobSearchHostSerializer,
 )
@@ -23,6 +23,7 @@ from config_query.tasks import (
 )
 
 cache = caches["default"]
+iam_permission = Permission()
 
 
 # Create your views here.
@@ -32,11 +33,39 @@ def business(request):
     获取用户的所有业务名和业务ID
     """
     queryset = Business.objects.all()
-    serializer = BusinessSerializer(instance=queryset, many=True)
-    return ConfigQueryResponse(data=serializer.data)
+    data = []
+    is_super_user, _ = iam_permission.is_bk_super_user(request.user.username)
+    # 如果是系统管理员解锁所有业务
+    if is_super_user:
+        for biz in queryset:
+            data.append(
+                {
+                    "bk_biz_id": biz.bk_biz_id,
+                    "bk_biz_name": biz.bk_biz_name,
+                    "is_auth": True,
+                }
+            )
+        return ConfigQueryResponse(data=data)
+
+    # 普通人员进行业务批量鉴权,返回有无权限信息
+    auth_biz = iam_permission.batch_auth_business(request.user.username, queryset)
+
+    for biz in queryset:
+        data.append(
+            {
+                "bk_biz_id": biz.bk_biz_id,
+                "bk_biz_name": biz.bk_biz_name,
+                "is_auth": auth_biz[str(biz.bk_biz_id)]["bk_biz_manage"],
+            }
+        )
+
+    data.sort(key=sort_by_auth, reverse=True)
+
+    return ConfigQueryResponse(data=data)
 
 
 @api_view(["GET"])
+@permission_classes([IsBizAccessIam])
 def sets_of_business(request, bk_biz_id=None):
     """
     获取某个业务下的所有集群的集群名和集群ID
@@ -57,6 +86,7 @@ def sets_of_business(request, bk_biz_id=None):
 
 
 @api_view(["GET"])
+@permission_classes([IsBizAccessIam])
 def modules_of_set(request, bk_biz_id=None, bk_set_id=None):
     """
     获取某个集群下的所有模块的模块名称和模块ID
@@ -75,6 +105,7 @@ def modules_of_set(request, bk_biz_id=None, bk_set_id=None):
 
 
 @api_view(["POST"])
+@permission_classes([IsBizAccessIam])
 def filter_hosts(request):
     """
     根据参数获取对应的主机列表
@@ -84,12 +115,55 @@ def filter_hosts(request):
 
     host_filter = HostFilter(data=params, queryset=Host.objects.all())
     page = ConfigQueryLimitOffsetPagination()
-    data = page.paginate_queryset(host_filter.qs, request)
-    serializer = HostSerializer(data, many=True)
-    return ConfigQueryResponse(data=serializer.data, count=page.count)
+    queryset = page.paginate_queryset(host_filter.qs, request)
+    is_super_user, _ = iam_permission.is_bk_super_user(request.user.username)
+    data = []
+
+    # 如果是系统管理员解锁所有业务
+    if is_super_user:
+        for host in queryset:
+            data.append(
+                {
+                    "bk_host_id": host.bk_host_id,
+                    "bk_biz_id": host.bk_biz_id,
+                    "bk_set_id": host.bk_set_id,
+                    "bk_module_id": host.bk_module_id,
+                    "bk_host_name": host.bk_host_name,
+                    "bk_host_innerip": host.bk_host_innerip,
+                    "bk_host_outerip": host.bk_host_outerip,
+                    "bk_cloud_id": host.bk_cloud_id,
+                    "operator": host.operator,
+                    "bk_bak_operator": host.bk_bak_operator,
+                    "bk_os_type": host.bk_os_type,
+                    "is_auth": True,
+                }
+            )
+        return ConfigQueryResponse(data=data, count=page.count)
+    if queryset:
+        auth_host = iam_permission.batch_auth_host(request.user.username, queryset)
+    for host in queryset:
+        data.append(
+            {
+                "bk_host_id": host.bk_host_id,
+                "bk_biz_id": host.bk_biz_id,
+                "bk_set_id": host.bk_set_id,
+                "bk_module_id": host.bk_module_id,
+                "bk_host_name": host.bk_host_name,
+                "bk_host_innerip": host.bk_host_innerip,
+                "bk_host_outerip": host.bk_host_outerip,
+                "bk_cloud_id": host.bk_cloud_id,
+                "operator": host.operator,
+                "bk_bak_operator": host.bk_bak_operator,
+                "bk_os_type": host.bk_os_type,
+                "is_auth": auth_host[str(host.bk_host_id)]["bk_host_manage"],
+            }
+        )
+    data.sort(key=sort_by_auth, reverse=True)
+    return ConfigQueryResponse(data=data, count=page.count)
 
 
 @api_view(["GET"])
+@permission_classes([IsBizAccessIam])
 def host_base_info(request, bk_host_id=None):
     """
     获取主机详细信息
@@ -101,6 +175,7 @@ def host_base_info(request, bk_host_id=None):
 
 
 @api_view(["POST"])
+@permission_classes([IsBizAccessIam])
 def sync_host_data(request):
     """
     启动同步数据库任务
@@ -165,8 +240,22 @@ def backup_records(request):
     """
     获取备份记录
     """
-    queryset = BackupHostFileRecord.objects.all().order_by("-backup_time")
+    queryset = BackupHostFileRecord.objects.filter(
+        backup_operator=request.user.username
+    ).order_by("-backup_time")
     page = ConfigQueryLimitOffsetPagination()
     data = page.paginate_queryset(queryset, request)
     serializer = BackupHostFileRecordSerializer(data, many=True)
     return ConfigQueryResponse(data=serializer.data, count=page.count)
+
+
+@api_view(["GET"])
+def make_host_apply_url(request, bk_biz_id, bk_set_id, bk_module_id, bk_host_id):
+    url = iam_permission.make_host_apply_url(
+        request.user.username, bk_biz_id, bk_set_id, bk_module_id, bk_host_id
+    )
+    return ConfigQueryResponse(data=url)
+
+
+def sort_by_auth(ele):
+    return ele["is_auth"]

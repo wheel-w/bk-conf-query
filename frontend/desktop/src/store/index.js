@@ -21,7 +21,8 @@ const store = new Vuex.Store({
     state: {
         mainContentLoading: false,
         // 系统当前登录用户
-        user: {}
+        user: {},
+        curBusiness: {}
     },
     // 公共 getters
     getters: {
@@ -38,6 +39,9 @@ const store = new Vuex.Store({
          */
         setMainContentLoading (state, loading) {
             state.mainContentLoading = loading
+        },
+        setCurBusiness (state, business) {
+            state.curBusiness = business
         },
 
         /**

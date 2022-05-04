@@ -6,6 +6,7 @@
 import Vue from 'vue'
 import axios from 'axios'
 import cookie from 'cookie'
+import store from '@/store'
 
 import CachedPromise from './cached-promise'
 import RequestQueue from './request-queue'
@@ -141,7 +142,26 @@ async function getPromise (method, url, data, userConfig = {}) {
 
     return promise
 }
-
+let flag = true
+const currentLanguage = localStorage.getItem('curLang') || 'zhCN'
+let tip = '该操作以下需要权限'
+let buttonInfo = '去申请'
+let applyInfo = '需申请'
+let authInfo = '权限,关联资源实例'
+let sysAuthInfo = '权限,无需关联资源实例'
+let bizManage = '业务管理'
+let sysMange = '系统管理'
+let biz = '业务'
+if (currentLanguage === 'enUS') {
+    tip = 'The operation below requires permission'
+    buttonInfo = 'Apply'
+    applyInfo = 'Need apply'
+    authInfo = 'authority,associated resource instance'
+    sysAuthInfo = 'authority, no need to associate resource instances'
+    bizManage = 'Business Manage'
+    sysMange = 'System Manage'
+    biz = 'business'
+}
 /**
  * 处理 http 请求成功结果
  *
@@ -151,6 +171,31 @@ async function getPromise (method, url, data, userConfig = {}) {
  * @param {Function} promise 拒绝函数
  */
 function handleResponse ({ config, response, resolve, reject }) {
+    let title = `${applyInfo}[${sysMange}]${sysAuthInfo}`
+    if (store.state.curBusiness.bk_biz_name) {
+        title = `${applyInfo}[${bizManage}]${authInfo}[${store.state.curBusiness.bk_biz_name}(${biz})]`
+    }
+    if (response.data.code === 403 && flag === true) {
+        Vue.prototype.$bkInfo({
+            type: 'bk-icon icon-lock',
+            width: '800px',
+            title: tip,
+            extCls: 'my-info',
+            okText: buttonInfo,
+            subTitle: title,
+            theme: 'success',
+            confirmFn (vm) {
+                window.open(response.data.data)
+                flag = true
+            },
+            cancelFn (vm) {
+                flag = true
+            },
+            afterLeaveFn (vm) {
+            }
+        })
+        flag = false
+    }
     if (!response.data && config.globalError) {
         reject({ message: response.message })
     } else {

@@ -182,22 +182,6 @@
                                     icon: 'icon-tree-application-shape'
                                 }
                             ]
-                        },
-                        {
-                            name: '权限中心',
-                            children: [
-                                {
-                                    name: '我的权限',
-                                    active: true,
-                                    icon: 'icon-tree-application-shape'
-                                },
-                                {
-                                    name: '申请权限',
-                                    title: true,
-                                    href: '/3',
-                                    icon: 'icon-tree-application-shape'
-                                }
-                            ]
                         }
                     ],
                     navId: '集群',
@@ -352,7 +336,9 @@
 </script>
 
 <style>
-
+.my-info .bk-icon {
+    font-size: 200px;
+}
 /* 以下样式是为了适应例子父级的宽高而设置 */
 /* .bk-navigation {
     width:calc(100vw - 530px) !important;

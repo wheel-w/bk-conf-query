@@ -30,3 +30,4 @@ gunicorn==19.6.0
 djangorestframework==3.12.4
 django-filter==2.4.0
 django-redis==4.7.0
+bk-iam==1.1.20
