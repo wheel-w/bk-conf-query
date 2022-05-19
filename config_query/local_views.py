@@ -134,7 +134,7 @@ def filter_hosts(request):
                     "bk_cloud_id": host.bk_cloud_id,
                     "operator": host.operator,
                     "bk_bak_operator": host.bk_bak_operator,
-                    "bk_os_type": host.bk_os_type,
+                    "host_system": host.host_system,
                     "is_auth": True,
                 }
             )
