@@ -468,7 +468,7 @@
                 this.$store.commit('setCurBusiness', this.curBusiness)
                 this.$http.post(`/api/filter_hosts/?start=${this.filterCondition.start}&limit=${this.pagination.limit}`, this.filterCondition).then(res => {
                     if (res.code !== 403) {
-                        this.pagination.count = res.data.count
+                        this.pagination.count = res.count
                         this.data = res.data
                         if (this.data.length === 0) {
                             this.$bkMessage({

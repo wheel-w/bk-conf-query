@@ -170,7 +170,7 @@
                             name: '作业平台',
                             children: [
                                 {
-                                    name: '主机文件查询',
+                                    name: '服务器文件查询',
                                     href: 'hostSearch',
                                     active: true,
                                     icon: 'icon-tree-application-shape'
