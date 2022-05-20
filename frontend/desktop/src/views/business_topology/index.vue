@@ -63,10 +63,10 @@
                                 <bk-input v-model="filterCondition.bk_cloud_id" :placeholder="$t('请输入完整的云区域ID')"></bk-input>
                             </bk-form-item>
                             <bk-form-item :label="$t('负责人')" :desc="customDesc">
-                                <bk-member-selector v-model="operator" :max-data="1" :placeholder="$t('请输入负责人')"></bk-member-selector>
+                                <bk-input v-model="operator" :max-data="1" :placeholder="$t('请输入负责人')"></bk-input>
                             </bk-form-item>
                             <bk-form-item :label="$t('备份负责人')" :desc="customDesc">
-                                <bk-member-selector v-model="bkBakOperator" :max-data="1" :placeholder="$t('请输入备份负责人')"></bk-member-selector>
+                                <bk-input v-model="bkBakOperator" :max-data="1" :placeholder="$t('请输入备份负责人')"></bk-input>
                             </bk-form-item>
                         </bk-form>
                     </div>
