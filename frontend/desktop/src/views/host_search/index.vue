@@ -584,7 +584,7 @@
                 this.isDataLoading = true
                 this.$store.commit('setCurBusiness', this.curBusiness)
                 this.$http.post(`/api/filter_hosts/?start=${this.filterCondition.start}&limit=${this.pagination.limit}`, this.filterCondition).then(res => {
-                    if (res.data.code !== 403) {
+                    if (res.code !== 403) {
                         this.pagination.count = res.count
                         this.data = res.data
                         setTimeout(this.rowMultipleChecked(), 500)

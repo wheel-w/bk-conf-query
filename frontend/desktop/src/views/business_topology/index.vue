@@ -342,8 +342,8 @@
                 }
                 this.$http.post('/api/sync_host_data/', command).then(res => {
                     this.syncLoading = false
-                    if (res.data.code !== 403) {
-                        if (res.data.result === true) {
+                    if (res.code !== 403) {
+                        if (res.result === true) {
                             this.$bkMessage({
                                 theme: 'success',
                                 message: this.$t('开始同步CMDB业务信息'),
@@ -352,7 +352,7 @@
                         } else {
                             this.$bkMessage({
                                 theme: 'warning',
-                                message: this.$t('CMDB业务信息正在同步,可通过切换API获取最新数据'),
+                                message: this.$t('CMDB业务信息正在同步'),
                                 offset: '80'
                             })
                         }
@@ -397,7 +397,7 @@
                 this.exampleSetting4.title = this.$t('主机详情[') + row.bk_host_id + ']'
                 this.$http.get(`/api/host_base_info/${row.bk_host_id}/`).then(res => {
                     if (res.code !== 403) {
-                        this.hostInfo = res.data.data
+                        this.hostInfo = res.data
                         this.exampleSetting4.visible = true
                     }
                 })
@@ -421,7 +421,7 @@
                 this.$http.get(`/api/sets_of_business/${this.bkBizId}/`).then(res => {
                     this.treeData = []
                     this.setList = []
-                    if (res.data.code !== 403) {
+                    if (res.code !== 403) {
                         this.treeData = res.data
                         this.setList = res.data
                     }

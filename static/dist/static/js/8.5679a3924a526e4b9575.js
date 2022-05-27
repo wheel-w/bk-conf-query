@@ -1,1 +1,0 @@
-(window["webpackJsonp"]=window["webpackJsonp"]||[]).push([[8],{88:function(a,r,e){"use strict";e.r(r);var n=function(){var a=this;var r=a.$createElement;var e=a._self._c||r;return e("div",[a._v("配置查询")])};var t=[];var v=e(2);var l={};var s=Object(v["a"])(l,n,t,false,null,null,null);var u=r["default"]=s.exports}}]);
